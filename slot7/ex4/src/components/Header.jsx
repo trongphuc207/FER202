@@ -1,4 +1,4 @@
-import logo from "../components/Assets/fpt.png"; // đảm bảo đúng đường dẫn & phân biệt hoa/thường
+import logo from "../components/Assets/fpt.png"; 
 
 export default function Header() {
   return (
