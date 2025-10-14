@@ -1,0 +1,220 @@
+/* Account Page Styles - Simple Version */
+.account-page {
+  background: #f8f9fa;
+  min-height: 100vh;
+  padding: 2rem 0;
+}
+
+.wizard-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.wizard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.wizard-header h2 {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.wizard-header p {
+  color: #6c757d;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Progress Section */
+.progress-section {
+  margin-bottom: 2rem;
+}
+
+.progress-container {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar-custom {
+  height: 6px;
+  border-radius: 3px;
+  background: #e9ecef;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar-custom .progress-bar {
+  background: #007bff;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .step-number {
+  background: #007bff;
+  color: white;
+}
+
+.progress-step.completed .step-number {
+  background: #28a745;
+  color: white;
+}
+
+.step-title {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.progress-step.active .step-title {
+  color: #007bff;
+  font-weight: 600;
+}
+
+/* Wizard Card */
+.wizard-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dee2e6;
+}
+
+.wizard-card-header {
+  background: #f8f9fa;
+  color: #495057;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.wizard-card-header h4 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.wizard-card-body {
+  padding: 1.5rem;
+}
+
+/* Navigation Buttons */
+.wizard-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.nav-btn {
+  padding: 8px 20px;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form Styles */
+.form-section-title {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.invalid-feedback {
+  display: block;
+  font-size: 0.875rem;
+  color: #dc3545;
+  margin-top: 0.25rem;
+}
+
+.input-group-icon {
+  background: #f8f9fa;
+  color: #6c757d;
+  border-color: #ced4da;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .wizard-card-body {
+    padding: 1rem;
+  }
+  
+  .wizard-card-header {
+    padding: 1rem;
+  }
+  
+  .step-number {
+    width: 25px;
+    height: 25px;
+    font-size: 0.8rem;
+  }
+  
+  .step-title {
+    font-size: 0.7rem;
+  }
+  
+  .wizard-navigation {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .nav-btn {
+    width: 100%;
+    min-width: auto;
+  }
+}
