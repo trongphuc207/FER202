@@ -4,6 +4,8 @@ export function Exercise4() {
   const isFirstEven = first1 % 2 === 0;
   const [first, , third = 0, ...restAges] = ages;
   const evenRest = restAges.filter(x => x % 2 === 0);
+  const sumAges = ages.reduce((acc, age) => acc + age, 0);
+  const sumAvrg = parseFloat((sumAges / ages.length).toFixed(2));
 
   return (
     <div>
@@ -15,6 +17,11 @@ export function Exercise4() {
       <ul>
         {evenRest.map((n, i) => <li key={i}>{n}</li>)}
       </ul>
+      <ul>
+        {restAges.map((age,i)=><li key={i}>{age}</li>)}
+      </ul>
+      <p><strong>Sum of ages:</strong> {sumAges}</p>
+      <p><strong>Average of ages:</strong> {sumAvrg}</p>
     </div>
   );
 }   

@@ -7,7 +7,7 @@ export function Exercise7() {
   const original = companies[0];
   const company0New = { ...original, start: original.start + 1 };
 
-  const concatAll = (...arrays) => arrays.flat(); // đơn giản hơn
+  const concatAll = (...arrays) => arrays.reduce((acc, arr) => acc.concat(arr), []);
   const merged = concatAll([1, 2], [3], [], [4, 5]);
 
   return (
@@ -21,3 +21,4 @@ export function Exercise7() {
     </div>
   );
 }
+export default Exercise7;

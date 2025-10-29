@@ -12,13 +12,20 @@ export function Exercise6() {
   ];
 
   const firstThree = [...companies].sort((a,b)=>a.end-b.end).slice(0,3);
-
+  const takeThree = [...companies].sort((a,b)=>b.end-a.end).slice(0,3);
+  const filFinance = companies.filter(c=>c.category==="Finance");
   return (
     <div>
       <h2>Exercise 6</h2>
       <ol>
         {firstThree.map((c,i)=><li key={i}>{c.name} — {c.end}</li>)}
       </ol>
+      <ol>
+        {takeThree.map((c,i)=><li key={i}>{c.name} — {c.end}</li>)}
+      </ol>
+      <ul>
+        {filFinance.map((company,i)=><li key={i}>{company.name} — {company.category}</li>)}
+      </ul>
     </div>
   );
 }

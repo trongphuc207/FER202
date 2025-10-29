@@ -3,7 +3,7 @@ import { Carousel, Badge } from "react-bootstrap";
 import { carouselMovies } from "../../data/carousel";
 
 export default function HomeCarousel() {
-  // Nếu mảng rỗng, không render để tránh lỗi
+
   if (!Array.isArray(carouselMovies) || carouselMovies.length === 0) return null;
 
   return (

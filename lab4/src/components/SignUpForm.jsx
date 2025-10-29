@@ -1,7 +1,8 @@
 import React, { useReducer } from "react";
 import { Card, Form, Button, Toast, ToastContainer, Modal } from "react-bootstrap";
+import ModalComponent from "./ModalComponent";
+import ToastComponent from "./ToastComponent";
 
-/** ---------- Validation ---------- */
 const initValues = { username: "", email: "", password: "", confirm: "" };
 
 function validate(v) {
@@ -23,7 +24,7 @@ function validate(v) {
   return e;
 }
 
-/** ---------- useReducer ---------- */
+
 const initialState = {
   values: initValues,
   touched: {},
@@ -36,7 +37,7 @@ function reducer(state, action) {
   switch (action.type) {
     case "SET_FIELD": {
       const values = { ...state.values, [action.field]: action.value };
-      const errors = validate(values); // validate theo yêu cầu đề
+      const errors = validate(values); 
       return { ...state, values, errors };
     }
     case "TOUCH": {
@@ -77,8 +78,7 @@ export default function SignUpForm() {
     dispatch({ type: "VALIDATE" });
     const nextErrors = validate(values);
     if (Object.keys(nextErrors).length === 0) {
-      // Có thể gọi onSubmit props ở đây nếu cần
-      // onSubmit?.(values);
+      
       dispatch({ type: "SUBMIT_SUCCESS" });
     }
   };
@@ -173,21 +173,19 @@ export default function SignUpForm() {
       </Card.Body>
 
       {/* Toast */}
-      <ToastContainer position="top-end" className="p-3">
-        <Toast onClose={() => dispatch({ type: "CLOSE_TOAST" })} show={showToast} delay={2000} autohide>
-          <Toast.Header>
-            <strong className="me-auto">Register</strong>
-          </Toast.Header>
-          <Toast.Body>Submitted successfully!</Toast.Body>
-        </Toast>
-      </ToastContainer>
+      <ToastComponent
+        show={showToast}
+        handleClose={() => dispatch({ type: "CLOSE_TOAST" })}
+        title="Success"
+        body="Đăng ký thành công!"
+      />
 
       {/* Modal hiển thị thông tin */}
-      <Modal show={showModal} onHide={() => dispatch({ type: "CLOSE_MODAL" })} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Thông tin đăng ký</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+      <ModalComponent
+        show={showModal}
+        handleClose={() => dispatch({ type: "CLOSE_MODAL" })}
+        title="Thông tin đăng ký"
+        body={
           <Card className="shadow-sm border-0">
             <Card.Body>
               <Card.Title className="mb-3 text-success">Đăng ký thành công!</Card.Title>
@@ -199,8 +197,8 @@ export default function SignUpForm() {
               </Card.Text>
             </Card.Body>
           </Card>
-        </Modal.Body>
-      </Modal>
+        }
+      />
     </Card>
   );
 }

@@ -14,11 +14,11 @@ export default function HomePage() {
   const [yearFilter, setYearFilter] = useState('all');
   const [sortBy, setSortBy] = useState('title-asc');
 
-  // Function to apply all filters and sorting
+  
   const applyFilters = (search = searchTerm, year = yearFilter, sort = sortBy) => {
     let filtered = [...movies];
 
-    // Apply search filter
+    
     if (search.trim()) {
       filtered = filtered.filter(movie => 
         movie.title.toLowerCase().includes(search.toLowerCase()) ||

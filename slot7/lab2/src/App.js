@@ -4,8 +4,6 @@ import Banner from "./components/Banner/Banner";
 import Menu from "./components/Menu/Menu";
 import Booking from "./components/Booking/Booking";
 
-
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 

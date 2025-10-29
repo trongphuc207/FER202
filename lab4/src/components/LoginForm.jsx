@@ -1,6 +1,7 @@
 //LoginForm component is used to render a login form with username and password fields, including validation and error handling.
 import { useReducer } from 'react';
 import { Form, Button, Card, Container, Row, Col, Modal } from 'react-bootstrap';
+import ModalComponent from './ModalComponent';
 
 // Initial state
 const initialState = {
@@ -58,19 +59,19 @@ function LoginForm({ onSubmit }) {
   const [state, dispatch] = useReducer(loginReducer, initialState);
   const { username, password, errors, showModal } = state;
 
-  //Xử lý thay đổi input
+  
   const handleUsernameChange = (e) => {
     dispatch({ type: 'SET_USERNAME', payload: e.target.value });
   };
 
-  //Xử lý thay đổi password
+  
   const handlePasswordChange = (e) => {
     dispatch({ type: 'SET_PASSWORD', payload: e.target.value });
   };
 
-  //Xử lý submit form
+ 
   const handleSubmit = (e) => {
-    e.preventDefault(); // Ngăn chặn reload trang
+    e.preventDefault(); 
     const newErrors = {};       
     if (username.trim() === '') {
       newErrors.username = 'Username is required';
@@ -82,7 +83,7 @@ function LoginForm({ onSubmit }) {
     if (Object.keys(newErrors).length > 0) {
       dispatch({ type: 'SET_ERRORS', payload: newErrors });
     } else {
-      //onSubmit?.({ username, password });
+      
       dispatch({ type: 'SHOW_MODAL' }); // Hiển thị modal khi không có lỗi
     }
   };
@@ -138,19 +139,12 @@ function LoginForm({ onSubmit }) {
         </Col>
       </Row>
       {/* Modal hiển thị khi đăng nhập thành công */}
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Login Successful</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Welcome, {username}!</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <ModalComponent
+        show={showModal}
+        handleClose={handleCloseModal}
+        title="Login Successful"
+        body={<p>Welcome, {username}!</p>}
+      />
     </Container>
   );
 }

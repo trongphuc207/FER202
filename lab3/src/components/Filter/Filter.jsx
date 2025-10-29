@@ -71,7 +71,7 @@ export default function Filter({ onSearch, onFilter, onSort, searchTerm, yearFil
                 <option value="all">All Years</option>
                 <option value="<=2000">≤ 2000</option>
                 <option value="2001-2015">2001-2015</option>
-                <option value=">2015">> 2015</option>
+                <option value=">2015"> 2015</option>
               </Form.Select>
             </Form.Group>
           </Col>
