@@ -8,7 +8,10 @@ const MovieTable = () => {
   // Lấy confirmDelete từ Context (chứa logic xóa phim)
   const { dispatch, confirmDelete } = useMovieDispatch(); 
   
-  const { movies, genres, loading, movieToDelete, showDeleteModal } = state;
+  const { filteredMovies, genres, loading, movieToDelete, showDeleteModal, movieToView, showDetailModal } = state;
+  
+  // Use filteredMovies if available, otherwise use all movies
+  const movies = filteredMovies.length > 0 || state.movies.length === 0 ? filteredMovies : state.movies;
 
   // Tạo genre map từ dữ liệu API
   const genreMap = genres.reduce((map, genre) => {
@@ -38,6 +41,11 @@ const MovieTable = () => {
   const handleDeleteClick = (movie) => {
       // Mở Modal Xác nhận Xóa và gán phim vào movieToDelete
       dispatch({ type: 'OPEN_DELETE_MODAL', payload: movie });
+  };
+
+  const handleViewDetailClick = (movie) => {
+      // Mở Modal chi tiết phim
+      dispatch({ type: 'OPEN_DETAIL_MODAL', payload: movie });
   };
 
   return (
@@ -80,6 +88,7 @@ const MovieTable = () => {
                   <td>{movie.duration} phút</td>
                  
                   <td>
+                    <Button variant="info" size="sm" className="me-2" onClick={() => handleViewDetailClick(movie)}>View Detail</Button>
                     <Button variant="primary" size="sm" onClick={() => handleEditClick(movie)} className="me-2">Sửa</Button>
                     <Button variant="danger" size="sm" onClick={() => handleDeleteClick(movie)}>Xóa</Button>
                   </td>
@@ -89,6 +98,58 @@ const MovieTable = () => {
           </tbody>
         </Table>
       )}
+
+      {/* MODAL XEM CHI TIẾT PHIM */}
+      <Modal show={showDetailModal} onHide={() => dispatch({ type: 'CLOSE_DETAIL_MODAL' })} size="lg" centered>
+        <Modal.Header closeButton>
+          <Modal.Title>🎬 Chi Tiết Phim</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {movieToView && (
+            <div>
+              <div className="text-center mb-3">
+                <Image 
+                  src={movieToView.avatar} 
+                  alt={movieToView.title} 
+                  style={{ width: '200px', height: '300px', objectFit: 'cover' }} 
+                  rounded 
+                  className="mb-3"
+                />
+              </div>
+              <div className="mb-3">
+                <h4 className="mb-2">{movieToView.title}</h4>
+                <p className="text-muted mb-2">({movieToView.year})</p>
+              </div>
+              <div className="mb-3">
+                <strong>Mô tả:</strong>
+                <p className="mt-2">{movieToView.description}</p>
+              </div>
+              <div className="row mb-3">
+                <div className="col-md-6 mb-2">
+                  <strong>ID:</strong> #{movieToView.id}
+                </div>
+                <div className="col-md-6 mb-2">
+                  <strong>Danh mục:</strong> {genreMap[movieToView.genreId] || 'Unknown'}
+                </div>
+                <div className="col-md-6 mb-2">
+                  <strong>Thời lượng:</strong> {movieToView.duration} phút
+                </div>
+                <div className="col-md-6 mb-2">
+                  <strong>Năm phát hành:</strong> {movieToView.year}
+                </div>
+                <div className="col-md-6 mb-2">
+                  <strong>Quốc gia:</strong> {movieToView.country}
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => dispatch({ type: 'CLOSE_DETAIL_MODAL' })}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* MODAL XÁC NHẬN XÓA */}
       <Modal show={showDeleteModal} onHide={() => dispatch({ type: 'CLOSE_DELETE_MODAL' })}>

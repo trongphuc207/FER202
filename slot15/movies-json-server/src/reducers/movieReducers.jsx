@@ -1,19 +1,25 @@
 // src/reducers/movieReducers.jsx
 export const initialMovieState = {
   movies: [],
+  filteredMovies: [], // Add filtered movies state
   genres: [],
   loading: false, 
   isEditing: null, 
   currentMovie: { avatar: '', title: '', description: '', genreId: '', duration: '', year: '', country: '' },
   showEditModal: false,   
   showDeleteModal: false, 
-  movieToDelete: null     
+  movieToDelete: null,
+  showDetailModal: false,
+  movieToView: null     
 };
 
 export const movieReducer = (state, action) => {
   switch (action.type) {
     case 'SET_MOVIES':
-      return { ...state, movies: action.payload, loading: false };
+      return { ...state, movies: action.payload, filteredMovies: action.payload, loading: false };
+
+    case 'SET_FILTERED_MOVIES':
+      return { ...state, filteredMovies: action.payload };
 
     case 'SET_GENRES':
       return { ...state, genres: action.payload };
@@ -56,6 +62,20 @@ export const movieReducer = (state, action) => {
             ...state,
             movieToDelete: null,
             showDeleteModal: false 
+        };
+
+    case 'OPEN_DETAIL_MODAL':
+        return {
+            ...state,
+            movieToView: action.payload,
+            showDetailModal: true 
+        };
+
+    case 'CLOSE_DETAIL_MODAL':
+        return {
+            ...state,
+            movieToView: null,
+            showDetailModal: false 
         };
       
     case 'RESET_FORM':
