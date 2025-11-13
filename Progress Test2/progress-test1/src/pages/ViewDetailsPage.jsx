@@ -1,20 +1,30 @@
 import React, { useEffect } from 'react';
 import { Container, Card, Button, Row, Col, ListGroup } from 'react-bootstrap';
-import { usePayment } from '../contexts/PaymentContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavigationHeader from '../components/NavigationHeader';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    fetchPaymentById,
+    clearCurrentPayment,
+    selectCurrentPayment,
+    selectPaymentsActionStatus,
+} from '../store/paymentsSlice';
 
 const ViewDetailsPage = () => {
     const { paymentId } = useParams();
     const navigate = useNavigate();
-    const { currentPayment, fetchPaymentById } = usePayment();
+    const dispatch = useDispatch();
+    const currentPayment = useSelector(selectCurrentPayment);
+    const actionStatus = useSelector(selectPaymentsActionStatus);
 
     useEffect(() => {
         if (paymentId) {
-            fetchPaymentById(paymentId);
+            dispatch(fetchPaymentById(paymentId));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [paymentId]);
+        return () => {
+            dispatch(clearCurrentPayment());
+        };
+    }, [dispatch, paymentId]);
 
     const formatAmount = (amount) => {
         return new Intl.NumberFormat('vi-VN', {
@@ -22,6 +32,31 @@ const ViewDetailsPage = () => {
             currency: 'VND'
         }).format(amount);
     };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return new Intl.DateTimeFormat('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            }).format(date);
+        } catch (error) {
+            return dateString;
+        }
+    };
+
+    if (!currentPayment && actionStatus === 'loading') {
+        return (
+            <>
+                <NavigationHeader />
+                <Container className="my-4">
+                    <div>Đang tải dữ liệu thanh toán...</div>
+                </Container>
+            </>
+        );
+    }
 
     if (!currentPayment) {
         return (
@@ -59,7 +94,7 @@ const ViewDetailsPage = () => {
                                         <strong>Amount:</strong> {formatAmount(currentPayment.amount)}
                                     </ListGroup.Item>
                                     <ListGroup.Item>
-                                        <strong>Date:</strong> {currentPayment.date}
+                                        <strong>Date:</strong> {formatDate(currentPayment.date)}
                                     </ListGroup.Item>
                                 </ListGroup>
 

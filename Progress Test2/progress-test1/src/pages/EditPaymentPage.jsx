@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Row, Col } from 'react-bootstrap';
-import { usePayment } from '../contexts/PaymentContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import NavigationHeader from '../components/NavigationHeader';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    fetchPaymentById,
+    updatePayment,
+    clearCurrentPayment,
+    selectCurrentPayment,
+    selectPaymentsActionStatus,
+    selectPaymentsActionError,
+} from '../store/paymentsSlice';
 
 const EditPaymentPage = () => {
     const { paymentId } = useParams();
     const navigate = useNavigate();
-    const { currentPayment, fetchPaymentById, updatePayment } = usePayment();
+    const dispatch = useDispatch();
+    const currentPayment = useSelector(selectCurrentPayment);
+    const actionStatus = useSelector(selectPaymentsActionStatus);
+    const actionError = useSelector(selectPaymentsActionError);
     const [formData, setFormData] = useState({
         semester: '',
         courseName: '',
@@ -17,10 +28,12 @@ const EditPaymentPage = () => {
 
     useEffect(() => {
         if (paymentId) {
-            fetchPaymentById(paymentId);
+            dispatch(fetchPaymentById(paymentId));
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [paymentId]);
+        return () => {
+            dispatch(clearCurrentPayment());
+        };
+    }, [dispatch, paymentId]);
 
     useEffect(() => {
         if (currentPayment) {
@@ -50,9 +63,24 @@ const EditPaymentPage = () => {
             date: formData.date,
             ...(currentPayment?.userId && { userId: currentPayment.userId }),
         };
-        await updatePayment(paymentId, paymentData);
-        navigate(`/payments/${paymentId}`);
+        try {
+            await dispatch(updatePayment({ id: paymentId, paymentData })).unwrap();
+            navigate(`/payments/${paymentId}`);
+        } catch (err) {
+            console.error('Failed to update payment:', err);
+        }
     };
+
+    if (!currentPayment && actionStatus === 'loading') {
+        return (
+            <>
+                <NavigationHeader />
+                <Container className="my-4">
+                    <div>Đang tải dữ liệu thanh toán...</div>
+                </Container>
+            </>
+        );
+    }
 
     if (!currentPayment) {
         return (
@@ -121,10 +149,13 @@ const EditPaymentPage = () => {
                                         <Button variant="secondary" onClick={() => navigate(`/payments/${paymentId}`)}>
                                             Hủy
                                         </Button>
-                                        <Button variant="primary" type="submit">
-                                            Cập nhật
+                                        <Button variant="primary" type="submit" disabled={actionStatus === 'loading'}>
+                                            {actionStatus === 'loading' ? 'Đang lưu...' : 'Cập nhật'}
                                         </Button>
                                     </div>
+                                    {actionError && (
+                                        <div className="text-danger mt-3">{actionError}</div>
+                                    )}
                                 </Form>
                             </Card.Body>
                         </Card>

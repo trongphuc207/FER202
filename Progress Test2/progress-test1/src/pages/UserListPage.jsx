@@ -1,33 +1,35 @@
-import React, { useReducer, useEffect, useMemo } from 'react';
+import React, { useReducer, useEffect, useMemo, useState } from 'react';
 import { Container, Card } from 'react-bootstrap';
 import NavigationHeader from '../components/NavigationHeader';
 import UserFilter from '../components/UserFilter';
 import UserTable from '../components/UserTable';
 import ConfirmModal from '../components/ConfirmModal';
-import * as api from '../services/api';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    fetchUsers,
+    fetchUserById,
+    updateUser,
+    clearSelectedUser,
+    selectUsers,
+    selectUsersStatus,
+    selectUsersError,
+    selectSelectedUser,
+    selectSelectedUserStatus,
+    selectSelectedUserError,
+    selectUsersUpdateStatus,
+    selectUsersUpdateError,
+} from '../store/usersSlice';
+import { useAuth } from '../contexts/AuthContext';
 
-// Initial state
-const initialState = {
-    users: [],
-    loading: true,
-    error: null,
+const filterInitialState = {
     searchTerm: '',
     roleFilter: '',
     statusFilter: '',
     sortBy: 'id_asc',
-    showDetailsModal: false,
-    selectedUser: null,
 };
 
-// Reducer function
-const userListReducer = (state, action) => {
+const filterReducer = (state, action) => {
     switch (action.type) {
-        case 'FETCH_START':
-            return { ...state, loading: true, error: null };
-        case 'FETCH_SUCCESS':
-            return { ...state, loading: false, users: action.payload, error: null };
-        case 'FETCH_FAILURE':
-            return { ...state, loading: false, error: action.payload };
         case 'SET_SEARCH_TERM':
             return { ...state, searchTerm: action.payload };
         case 'SET_ROLE_FILTER':
@@ -36,50 +38,39 @@ const userListReducer = (state, action) => {
             return { ...state, statusFilter: action.payload };
         case 'SET_SORT_BY':
             return { ...state, sortBy: action.payload };
-        case 'SHOW_DETAILS_MODAL':
-            return { ...state, showDetailsModal: true, selectedUser: action.payload };
-        case 'HIDE_DETAILS_MODAL':
-            return { ...state, showDetailsModal: false, selectedUser: null };
-        case 'SET_ERROR':
-            return { ...state, error: action.payload };
-        case 'UPDATE_USER':
-            return {
-                ...state,
-                users: state.users.map((user) =>
-                    user.id === action.payload.id ? action.payload : user
-                ),
-            };
         default:
             return state;
     }
 };
 
 const UserListPage = () => {
-    const [state, dispatch] = useReducer(userListReducer, initialState);
+    const dispatch = useDispatch();
+    const [filterState, filterDispatch] = useReducer(filterReducer, filterInitialState);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+    const { user: currentUser } = useAuth();
+
+    const users = useSelector(selectUsers);
+    const usersStatus = useSelector(selectUsersStatus);
+    const usersError = useSelector(selectUsersError);
+    const selectedUser = useSelector(selectSelectedUser);
+    const selectedUserStatus = useSelector(selectSelectedUserStatus);
+    const selectedUserError = useSelector(selectSelectedUserError);
+    const updateStatus = useSelector(selectUsersUpdateStatus);
+    const updateError = useSelector(selectUsersUpdateError);
 
     // Fetch users on component mount
     useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const fetchUsers = async () => {
-        try {
-            dispatch({ type: 'FETCH_START' });
-            const data = await api.getUsers();
-            dispatch({ type: 'FETCH_SUCCESS', payload: data });
-        } catch (err) {
-            dispatch({ type: 'FETCH_FAILURE', payload: 'Failed to load users' });
-            console.error('Error fetching users:', err);
-        }
-    };
+        dispatch(fetchUsers());
+    }, [dispatch]);
 
     // Filter and sort users
     const filteredAndSortedUsers = useMemo(() => {
-        let filtered = [...state.users];
+        let filtered = [...users];
 
         // Search filter
-        if (state.searchTerm) {
-            const searchLower = state.searchTerm.toLowerCase();
+        if (filterState.searchTerm) {
+            const searchLower = filterState.searchTerm.toLowerCase();
             filtered = filtered.filter(
                 (user) =>
                     user.username.toLowerCase().includes(searchLower) ||
@@ -88,18 +79,18 @@ const UserListPage = () => {
         }
 
         // Role filter
-        if (state.roleFilter) {
-            filtered = filtered.filter((user) => user.role === state.roleFilter);
+        if (filterState.roleFilter) {
+            filtered = filtered.filter((user) => user.role === filterState.roleFilter);
         }
 
         // Status filter
-        if (state.statusFilter) {
-            filtered = filtered.filter((user) => user.status === state.statusFilter);
+        if (filterState.statusFilter) {
+            filtered = filtered.filter((user) => user.status === filterState.statusFilter);
         }
 
         // Sort
         filtered.sort((a, b) => {
-            switch (state.sortBy) {
+            switch (filterState.sortBy) {
                 case 'id_asc':
                     return parseInt(a.id) - parseInt(b.id);
                 case 'id_desc':
@@ -118,47 +109,65 @@ const UserListPage = () => {
         });
 
         return filtered;
-    }, [state.users, state.searchTerm, state.roleFilter, state.statusFilter, state.sortBy]);
+    }, [users, filterState]);
 
     const handleViewDetails = async (userId) => {
         try {
-            const user = await api.getUserById(userId);
-            dispatch({ type: 'SHOW_DETAILS_MODAL', payload: user });
+            await dispatch(fetchUserById(userId)).unwrap();
+            setShowDetailsModal(true);
         } catch (err) {
-            dispatch({ type: 'SET_ERROR', payload: 'Failed to load user details' });
             console.error('Error fetching user:', err);
+            setShowDetailsModal(false);
         }
     };
 
     const handleBanAccount = async (userId) => {
+        const user = users.find((u) => u.id === userId);
+        if (!user || user.id === currentUser?.id || user.status === 'blocked' || user.status === 'locked') {
+            return;
+        }
+
+        const updatedUser = {
+            ...user,
+            status: 'blocked',
+        };
+
         try {
-            const user = state.users.find((u) => u.id === userId);
-            if (!user) return;
-
-            const updatedUser = {
-                ...user,
-                status: 'blocked',
-            };
-
-            await api.updateUser(userId, updatedUser);
-            // Update user in state
-            dispatch({ type: 'UPDATE_USER', payload: updatedUser });
+            await dispatch(updateUser({ id: userId, userData: updatedUser })).unwrap();
         } catch (err) {
-            dispatch({ type: 'SET_ERROR', payload: 'Failed to ban account' });
+            console.error('Error updating user:', err);
+        }
+    };
+
+    const handleUnbanAccount = async (userId) => {
+        const user = users.find((u) => u.id === userId);
+        if (!user || user.id === currentUser?.id || user.status === 'active') {
+            return;
+        }
+
+        const updatedUser = {
+            ...user,
+            status: 'active',
+        };
+
+        try {
+            await dispatch(updateUser({ id: userId, userData: updatedUser })).unwrap();
+        } catch (err) {
             console.error('Error updating user:', err);
         }
     };
 
     const handleCloseDetailsModal = () => {
-        dispatch({ type: 'HIDE_DETAILS_MODAL' });
+        setShowDetailsModal(false);
+        dispatch(clearSelectedUser());
     };
 
-    if (state.loading) {
+    if (usersStatus === 'loading') {
         return (
             <>
                 <NavigationHeader />
                 <Container className="my-4">
-                    <div>Loading...</div>
+                    <div>Đang tải danh sách người dùng...</div>
                 </Container>
             </>
         );
@@ -169,54 +178,72 @@ const UserListPage = () => {
             <NavigationHeader />
             <Container className="my-4">
                 <UserFilter
-                    searchTerm={state.searchTerm}
-                    setSearchTerm={(value) => dispatch({ type: 'SET_SEARCH_TERM', payload: value })}
-                    roleFilter={state.roleFilter}
-                    setRoleFilter={(value) => dispatch({ type: 'SET_ROLE_FILTER', payload: value })}
-                    statusFilter={state.statusFilter}
-                    setStatusFilter={(value) => dispatch({ type: 'SET_STATUS_FILTER', payload: value })}
-                    sortBy={state.sortBy}
-                    setSortBy={(value) => dispatch({ type: 'SET_SORT_BY', payload: value })}
+                    searchTerm={filterState.searchTerm}
+                    setSearchTerm={(value) => filterDispatch({ type: 'SET_SEARCH_TERM', payload: value })}
+                    roleFilter={filterState.roleFilter}
+                    setRoleFilter={(value) => filterDispatch({ type: 'SET_ROLE_FILTER', payload: value })}
+                    statusFilter={filterState.statusFilter}
+                    setStatusFilter={(value) => filterDispatch({ type: 'SET_STATUS_FILTER', payload: value })}
+                    sortBy={filterState.sortBy}
+                    setSortBy={(value) => filterDispatch({ type: 'SET_SORT_BY', payload: value })}
                 />
                 
                 <Card>
                     <Card.Header as="h5">Danh Sách Users</Card.Header>
                     <Card.Body>
-                        {state.error && <div className="alert alert-danger">{state.error}</div>}
+                        {(usersStatus === 'failed' || usersError) && (
+                            <div className="alert alert-danger">
+                                {usersError || 'Không thể tải danh sách người dùng.'}
+                            </div>
+                        )}
+                        {updateError && (
+                            <div className="alert alert-danger">
+                                {updateError}
+                            </div>
+                        )}
                         <UserTable
                             users={filteredAndSortedUsers}
                             onViewDetails={handleViewDetails}
                             onBanAccount={handleBanAccount}
+                            onUnbanAccount={handleUnbanAccount}
+                            isUpdating={updateStatus === 'loading'}
+                            currentUserId={currentUser?.id}
                         />
                     </Card.Body>
                 </Card>
             </Container>
 
             {/* User Details Modal */}
-            {state.selectedUser && (
+            {selectedUser && (
                 <ConfirmModal
-                    show={state.showDetailsModal}
+                    show={showDetailsModal}
                     title="User Details"
                     message={
-                        <div>
-                            <p><strong>ID:</strong> {state.selectedUser.id}</p>
-                            <p><strong>Username:</strong> {state.selectedUser.username}</p>
-                            <p><strong>Full Name:</strong> {state.selectedUser.fullName}</p>
-                            <p><strong>Role:</strong> {state.selectedUser.role}</p>
-                            <p><strong>Status:</strong> {state.selectedUser.status}</p>
-                            <p>
-                                <strong>Avatar:</strong>{' '}
-                                <img 
-                                    src={state.selectedUser.avatar || '/images/users/default.png'} 
-                                    alt="Avatar" 
-                                    style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = '/images/users/default.png';
-                                    }}
-                                />
-                            </p>
-                        </div>
+                        selectedUserStatus === 'loading' ? (
+                            <div>Đang tải thông tin người dùng...</div>
+                        ) : selectedUserError ? (
+                            <div className="text-danger">{selectedUserError}</div>
+                        ) : (
+                            <div>
+                                <p><strong>ID:</strong> {selectedUser.id}</p>
+                                <p><strong>Username:</strong> {selectedUser.username}</p>
+                                <p><strong>Full Name:</strong> {selectedUser.fullName}</p>
+                                <p><strong>Role:</strong> {selectedUser.role}</p>
+                                <p><strong>Status:</strong> {selectedUser.status}</p>
+                                <p>
+                                    <strong>Avatar:</strong>{' '}
+                                    <img 
+                                        src={selectedUser.avatar || '/images/users/default.png'} 
+                                        alt="Avatar" 
+                                        style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = '/images/users/default.png';
+                                        }}
+                                    />
+                                </p>
+                            </div>
+                        )
                     }
                     onHide={handleCloseDetailsModal}
                 />

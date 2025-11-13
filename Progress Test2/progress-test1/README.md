@@ -1,6 +1,7 @@
 # Progress Test 2 - Student Tuition Payment System
 
 This project is a React application for managing student tuition payments with user management functionality.
+Application state (users and payments) is powered by **Redux Toolkit**.
 
 ## Setup Instructions
 
@@ -27,6 +28,11 @@ npm start
 
 The application will open at [http://localhost:3000](http://localhost:3000)
 
+### State Management
+- Redux Toolkit store with slices for users and payments
+- Async thunks for fetching, creating, updating, and deleting data
+- React components consume state via `react-redux` hooks
+
 ## Features
 
 ### Authentication
@@ -45,6 +51,7 @@ The application will open at [http://localhost:3000](http://localhost:3000)
 - View user details (modal)
 - Ban/lock user accounts
 - Avatar display for all users
+- State updates immediately when banning or viewing details via Redux actions
 
 ## Available Scripts
 

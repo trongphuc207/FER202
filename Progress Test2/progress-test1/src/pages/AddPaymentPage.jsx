@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { Container, Card, Form, Button, Row, Col } from 'react-bootstrap';
-import { usePayment } from '../contexts/PaymentContext';
 import { useNavigate } from 'react-router-dom';
 import NavigationHeader from '../components/NavigationHeader';
+import { useDispatch, useSelector } from 'react-redux';
+import { createPayment, selectPaymentsActionStatus, selectPaymentsActionError } from '../store/paymentsSlice';
+import { useAuth } from '../contexts/AuthContext';
 
 const AddPaymentPage = () => {
-    const { createPayment } = usePayment();
+    const dispatch = useDispatch();
+    const { user } = useAuth();
+    const actionStatus = useSelector(selectPaymentsActionStatus);
+    const actionError = useSelector(selectPaymentsActionError);
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         semester: '',
@@ -29,9 +34,14 @@ const AddPaymentPage = () => {
             courseName: formData.courseName,
             amount: parseFloat(formData.amount),
             date: formData.date,
+            userId: user?.id,
         };
-        await createPayment(paymentData);
-        navigate('/home');
+        try {
+            await dispatch(createPayment(paymentData)).unwrap();
+            navigate('/home');
+        } catch (err) {
+            console.error('Failed to create payment:', err);
+        }
     };
 
     return (
@@ -88,10 +98,13 @@ const AddPaymentPage = () => {
                                         <Button variant="secondary" onClick={() => navigate('/home')}>
                                             Hủy
                                         </Button>
-                                        <Button variant="primary" type="submit">
-                                            Thêm
+                                        <Button variant="primary" type="submit" disabled={actionStatus === 'loading'}>
+                                            {actionStatus === 'loading' ? 'Đang lưu...' : 'Thêm'}
                                         </Button>
                                     </div>
+                                    {actionError && (
+                                        <div className="text-danger mt-3">{actionError}</div>
+                                    )}
                                 </Form>
                             </Card.Body>
                         </Card>

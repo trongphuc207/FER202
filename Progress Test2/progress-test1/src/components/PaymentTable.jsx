@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table, Button } from 'react-bootstrap';
-import { usePayment } from '../contexts/PaymentContext';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from './ConfirmModal';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    fetchPayments,
+    deletePayment as deletePaymentThunk,
+    selectPayments,
+    selectPaymentsStatus,
+    selectPaymentsError,
+} from '../store/paymentsSlice';
+import { useAuth } from '../contexts/AuthContext';
 
 const PaymentTable = () => {
-    const { payments, deletePayment } = usePayment();
+    const dispatch = useDispatch();
+    const { user } = useAuth();
+    const payments = useSelector(selectPayments);
+    const status = useSelector(selectPaymentsStatus);
+    const error = useSelector(selectPaymentsError);
     const navigate = useNavigate();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [paymentToDelete, setPaymentToDelete] = useState(null);
+
+    useEffect(() => {
+        if (user?.id) {
+            dispatch(fetchPayments(user.id));
+        }
+    }, [dispatch, user]);
 
     const formatAmount = (amount) => {
         return new Intl.NumberFormat('vi-VN', {
@@ -38,11 +56,23 @@ const PaymentTable = () => {
 
     const handleConfirmDelete = async () => {
         if (paymentToDelete) {
-            await deletePayment(paymentToDelete.id);
+            try {
+                await dispatch(deletePaymentThunk(paymentToDelete.id)).unwrap();
+            } catch (err) {
+                console.error('Failed to delete payment:', err);
+            }
             setShowDeleteModal(false);
             setPaymentToDelete(null);
         }
     };
+
+    if (status === 'loading') {
+        return <div>Đang tải danh sách thanh toán...</div>;
+    }
+
+    if (status === 'failed') {
+        return <div className="text-danger">Không thể tải danh sách thanh toán: {error}</div>;
+    }
 
     // Tính tổng tiền
     const totalAmount = payments.reduce((sum, payment) => {
@@ -118,6 +148,7 @@ const PaymentTable = () => {
                 title="Xác nhận xóa"
                 message={`Xóa thanh toán "${paymentToDelete?.courseName}"?`}
                 onConfirm={handleConfirmDelete}
+                onHide={() => setShowDeleteModal(false)}
             />
         </>
     );

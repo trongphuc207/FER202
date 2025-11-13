@@ -1,0 +1,39 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Alice",
+      "isAdmin": false
+    },
+    {
+      "id": 2,
+      "name": "Bob",
+      "isAdmin": true
+    },
+    {
+      "id": 3,
+      "name": "Charlie",
+      "isAdmin": false
+    }
+  ],
+  "payments": [
+    {
+      "amount": 10000,
+      "method": "Bank",
+      "status": "SUCCESS",
+      "id": 1
+    },
+    {
+      "amount": 10000,
+      "method": "Bank",
+      "status": "SUCCESS",
+      "id": 2
+    },
+    {
+      "amount": 10000,
+      "method": "Bank",
+      "status": "SUCCESS",
+      "id": 3
+    }
+  ]
+}

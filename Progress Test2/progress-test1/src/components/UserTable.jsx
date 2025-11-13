@@ -2,21 +2,29 @@ import React, { useState } from 'react';
 import { Table, Button, Image, Badge } from 'react-bootstrap';
 import ConfirmModal from './ConfirmModal';
 
-const UserTable = ({ users, onViewDetails, onBanAccount }) => {
-    const [showBanModal, setShowBanModal] = useState(false);
-    const [userToBan, setUserToBan] = useState(null);
+const UserTable = ({ users, onViewDetails, onBanAccount, onUnbanAccount, isUpdating = false, currentUserId }) => {
+    const [actionModal, setActionModal] = useState({
+        show: false,
+        action: 'ban',
+        user: null,
+    });
 
-    const handleBanClick = (user) => {
-        setUserToBan(user);
-        setShowBanModal(true);
+    const openActionModal = (user, action) => {
+        setActionModal({
+            show: true,
+            action,
+            user,
+        });
     };
 
     const handleConfirmBan = () => {
-        if (userToBan) {
-            onBanAccount(userToBan.id);
-            setShowBanModal(false);
-            setUserToBan(null);
+        if (!actionModal.user) return;
+        if (actionModal.action === 'ban') {
+            onBanAccount(actionModal.user.id);
+        } else {
+            onUnbanAccount(actionModal.user.id);
         }
+        setActionModal({ show: false, action: 'ban', user: null });
     };
 
     const getStatusBadgeVariant = (status) => {
@@ -88,16 +96,22 @@ const UserTable = ({ users, onViewDetails, onBanAccount }) => {
                                     size="sm"
                                     className="me-2"
                                     onClick={() => onViewDetails(user.id)}
+                                    disabled={isUpdating}
                                 >
                                     View Details
                                 </Button>
                                 <Button
-                                    variant="danger"
+                                    variant={['blocked', 'locked'].includes(user.status) ? 'success' : 'danger'}
                                     size="sm"
-                                    onClick={() => handleBanClick(user)}
-                                    disabled={user.status === 'blocked' || user.status === 'locked'}
+                                    onClick={() =>
+                                        openActionModal(
+                                            user,
+                                            ['blocked', 'locked'].includes(user.status) ? 'unban' : 'ban'
+                                        )
+                                    }
+                                    disabled={isUpdating || user.id === currentUserId}
                                 >
-                                    Ban Account
+                                    {['blocked', 'locked'].includes(user.status) ? 'Unban Account' : 'Ban Account'}
                                 </Button>
                             </td>
                         </tr>
@@ -106,11 +120,15 @@ const UserTable = ({ users, onViewDetails, onBanAccount }) => {
             </Table>
 
             <ConfirmModal
-                show={showBanModal}
-                title="Xác nhận khóa tài khoản"
-                message={`Bạn có chắc chắn muốn khóa tài khoản "${userToBan?.username}"?`}
+                show={actionModal.show}
+                title={actionModal.action === 'ban' ? 'Xác nhận khóa tài khoản' : 'Mở khóa tài khoản'}
+                message={
+                    actionModal.action === 'ban'
+                        ? `Bạn có chắc chắn muốn khóa tài khoản "${actionModal.user?.username}"?`
+                        : `Bạn có chắc chắn muốn mở khóa tài khoản "${actionModal.user?.username}"?`
+                }
                 onConfirm={handleConfirmBan}
-                onHide={() => setShowBanModal(false)}
+                onHide={() => setActionModal({ show: false, action: 'ban', user: null })}
             />
         </>
     );
